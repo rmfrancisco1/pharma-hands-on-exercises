@@ -43,13 +43,14 @@ Read in the adsl data from the GitHub location (`https://github.com/phuse-org/ph
 
 ```{r read_adsl_data}
 
-adsl <- import(file =  "")
-
+adsl <- import(file = "https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt")
 ```
 
 3.  To view the first 10 rows of the R object `adsl`, you can just simply type the dataset name. Type in `adsl` into the chunk below and run using the green arrow:
 
 ```{r view_adsl_object}
+
+adsl
 
 ```
 
@@ -73,9 +74,9 @@ Let's check whether the `AGE` variable is numeric and whether `RACE` is characte
 
 ```{r check_variable_types}
 
-is.numeric( )
+is.numeric(adsl$AGE)
 
-is.character( )
+is.character(adsl$RACE)
 
 ```
 
@@ -95,7 +96,7 @@ If some columns have missing values, you can use these warning messages to check
 
 ```{r create_adsl_eff}
 
-adsl_eff <- filter(.data = , EFFFL == 'Y')
+adsl_eff <- filter(.data = adsl, EFFFL == 'Y')
 
 adsl_eff
 
@@ -109,7 +110,7 @@ Again, recall that R is case-sensitive. Most variable names in SAS datasets are 
 
 ```{r arrange_adsl_eff}
 
-sort_adsl_eff <- arrange(.data = adsl_eff, )
+sort_adsl_eff <- arrange(.data = adsl_eff, USUBJID)
 
 ```
 
@@ -131,13 +132,19 @@ When we use the `%>%` operator, we read this as "...then...". So the above pipel
 
 ```{r skim_adsl_eff}
 
-skim( )
+skim(adsl_eff)
 
 ```
 
 10. Sort the `adsl_eff` data by `TRT01A`, `USUBJID` variables and create a new dataset `adsl_eff_srt` You can use the previous code (HINT: `arrange( )`) to sort the data.
 
 ```{r sort_adsl_eff}
+
+adsl_eff_srt <- adsl_eff %>%
+  
+  arrange(TRT01A, USUBJID)
+
+adsl_eff_srt
 
 ```
 
@@ -147,7 +154,7 @@ skim( )
 
 adsl_eff_srt <- adsl_eff_srt %>%
 
-  select( )
+  select(USUBJID, AGE, AGEU, SEX, RACE, ETHNIC, TRT01A)
 
 adsl_eff_srt
 
@@ -159,7 +166,7 @@ Now the `adsl_eff_srt` data object still has 234 rows, but only 7 columns.
 
 ```{r rename_adsl_eff_srt}
 
-names(x = adsl_eff_srt) <- c( )
+names(x = adsl_eff_srt) <- c("Subject ID","Age","AgeUnits","Sex","Race","Ethnicity","Treatment")
 
 ```
 
@@ -167,7 +174,7 @@ names(x = adsl_eff_srt) <- c( )
 
 ```{r display_adsl_eff_srt}
 
-print( )
+print(adsl_eff_srt)
 
 ```
 
