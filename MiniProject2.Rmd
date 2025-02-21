@@ -47,6 +47,7 @@ library(rio)
 ```{r read_adsl_data}
 adsl <- import( file = "https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt"  )
 
+# Used head() to only display the first 10 rows of the dataset
 head(adsl, 10)
 ```
 
