@@ -45,8 +45,9 @@ library(rio)
 2.  Read in the CDISC adsl data from the GitHub location (`https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt`) and assign this to an object in R using the assignment operator `<-`. Make sure that the URL location is a character string by enclosing it in `" "`. The `rio` package has a function called `import` that reads data into R and infers the data type from the file name. The first argument of that function is `file`. Paste the file path / URL above after the `file=` argument in the code below, then run the chunk using the green arrow.
 
 ```{r read_adsl_data}
-adsl <- import( file = ""  )
-adsl
+adsl <- import( file = "https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt"  )
+
+head(adsl, 10)
 ```
 
 Note that the `adsl` data object has 254 rows and 48 columns.
@@ -70,8 +71,9 @@ If you are unsure, try each option by pasting in the filter statement after the 
 
 ```{r create_adsl_saf}
 adsl_eff <-   adsl %>%
-  filter(  )
-adsl_eff
+  filter( EFFFL == "Y" )
+
+head(adsl_eff, 10)
 ```
 
 After filtering out the data we now have 234 rows and 48 columns.
@@ -92,7 +94,7 @@ In the next code chunk we want to calculate the number of observations within ea
 
 ```{r group_by}
 adsl_eff %>%
-  group_by( ) %>%
+  group_by( TRT01A ) %>%
   count(name = "N")
 ```
 
@@ -102,7 +104,7 @@ Whenever you use `group_by()` R will carry along the grouping variables into the
 
 ```{r big_N}
 Big_N_cnt <- adsl_eff %>%
-  group_by(   ) %>%
+  group_by( TRT01AN, TRT01A ) %>%
   count(name = "N")
 Big_N_cnt
 ```
@@ -113,7 +115,7 @@ Big_N_cnt
 
 ```{r small_n}
 small_n_cnt <- adsl_eff %>%
-  group_by( TRT01AN, TRT01A,  ) %>%
+  group_by( TRT01AN, TRT01A, SEX ) %>%
   count(name = "n")
 small_n_cnt
 ```
@@ -122,7 +124,7 @@ Do we get different answers if we use the `group_by()` variables in a different 
 
 ```{r change_group_order}
 adsl_eff %>%
-  group_by(  ) %>%
+  group_by( SEX, TRT01A, TRT01AN) %>%
   count(name = "n")
 ```
 
@@ -302,8 +304,14 @@ In steps 6, 7, 8 and 9 we have looked at R chunks that merge the data, calculate
 
 ```{r pipeline}
 # Paste commands above after the "<-" assignment, one per line
-adsl_mrg_cnt <- 
-  
+adsl_mrg_cnt <- small_n_cnt %>%
+  left_join(Big_N_cnt) %>%
+  mutate(perc = round(n/N*100, digits=1)) %>%
+  mutate(perc_char = format(perc, nsmall=1)) %>%
+  mutate(npct = paste(n, "(", perc_char, ")" ) ) %>%
+  mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female")) %>%
+  ungroup() %>%
+  select(TRT01A, SEX, npct)
 
 # Display this data so we can check it
 adsl_mrg_cnt
@@ -325,9 +333,35 @@ adsl_mrg_cnt %>%
 Repeat the steps above, but add an additional grouping variable to the calculation of Big_N\_cnt and small_n\_cnt - `AGEGRP`. Here's the first step:
 
 ```{r}
-adsl_saf %>%
+adsl_eff %>%
   group_by(TRT01AN, TRT01A, AGEGR1N, AGEGR1) %>%
   count(name = "N")
+
+Big_N_cnt_Age <- adsl_eff %>% 
+  group_by(TRT01AN, TRT01A, AGEGR1N, AGEGR1) %>% 
+  count(name="N")
+
+Big_N_cnt_Age
+
+small_n_cnt_Age <- adsl_eff %>%
+  group_by( TRT01AN, TRT01A, AGEGR1N, AGEGR1, SEX) %>%
+  count(name = "n")
+
+small_n_cnt_Age
+
+
+adsl_mrg_cnt_Age <- small_n_cnt_Age %>%
+  left_join(Big_N_cnt_Age) %>%
+  mutate(perc = round(n/N*100, digits=1)) %>%
+  mutate(perc_char = format(perc, nsmall=1)) %>%
+  mutate(npct = paste(n, paste0("(", perc_char, ")" )) ) %>%
+  mutate(SEX=recode(SEX,"M"="Male", "F"="Female")) %>%
+  ungroup() %>%
+  select(TRT01A, AGEGR1, SEX, npct) %>%
+  pivot_wider(names_from = TRT01A, values_from = npct)
+
+adsl_mrg_cnt_Age
+
 ```
 
 To check that your code is reproducible, you will want to use the "knit" button on the RStudio IDE interface to create an HTML file based on your saved .Rmd file. If your code chunks are reproducible then you should get an HTML file as a result. If NOT (if there's an error or if the "knit" process fails) then click on the arrow to the right of the "Run" button and select "Restart R and Run All Chunks". Then troubleshoot which chunk is causing problems.
@@ -338,3 +372,34 @@ Generate Counts and Percentages of Body Text Term (AEBODSYS) for Safety Populati
 
 
 Save the .RMD file on your desktop and click on the "Knit" button at the top of the file to render an HTML version of this document.
+
+```{r}
+adae <- import( file = "https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adae.xpt"  )
+
+adae_saf <- adae %>%
+  filter(SAFFL == "Y")
+
+Big_N_cnt_adae <- adae_saf %>% 
+  group_by(TRTAN, TRTA) %>% 
+  count(name="N")
+
+Big_N_cnt_adae
+
+small_n_cnt_adae <- adae_saf %>%
+  group_by( TRTAN, TRTA, AEBODSYS) %>%
+  count(name = "n")
+
+small_n_cnt_adae
+
+adae_mrg_cnt <- small_n_cnt_adae %>%
+  left_join(Big_N_cnt_adae) %>%
+  mutate(perc = round(n/N*100, digits=1)) %>%
+  mutate(perc_char = format(perc, nsmall=1)) %>%
+  mutate(npct = paste(n, paste0("(", perc_char, ")" )) ) %>%
+  ungroup() %>%
+  select(TRTA, AEBODSYS, npct) %>%
+  pivot_wider(names_from = TRTA, values_from = npct)
+
+adae_mrg_cnt
+
+```
