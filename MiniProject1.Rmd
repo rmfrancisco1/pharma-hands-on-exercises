@@ -50,7 +50,7 @@ adsl <- import(file = "https://github.com/phuse-org/phuse-scripts/raw/master/dat
 
 ```{r view_adsl_object}
 
-adsl
+head(adsl, 10)
 
 ```
 
@@ -98,7 +98,7 @@ If some columns have missing values, you can use these warning messages to check
 
 adsl_eff <- filter(.data = adsl, EFFFL == 'Y')
 
-adsl_eff
+head(adsl_eff, 10)
 
 ```
 
@@ -144,7 +144,7 @@ adsl_eff_srt <- adsl_eff %>%
   
   arrange(TRT01A, USUBJID)
 
-adsl_eff_srt
+head(adsl_eff_srt, 10)
 
 ```
 
@@ -156,7 +156,7 @@ adsl_eff_srt <- adsl_eff_srt %>%
 
   select(USUBJID, AGE, AGEU, SEX, RACE, ETHNIC, TRT01A)
 
-adsl_eff_srt
+head(adsl_eff_srt, 10)
 
 ```
 
@@ -184,7 +184,7 @@ But to save this output for later use, you'll want to use one of these packages 
 
 htmlTable(x =  adsl_eff_srt,
 
-          align = "l",
+          align = "c",
 
           rnames=FALSE,
 
