@@ -144,8 +144,6 @@ adsl_eff_srt <- adsl_eff %>%
   
   arrange(TRT01A, USUBJID)
 
-head(adsl_eff_srt, 10)
-
 ```
 
 11. The `select` function will select out only the specified columns of a data object. Select only the following variables from the adsl_saf_srt data object: `USUBJID, AGE, AGEU, SEX, RACE, ETHNIC, TRT01A`. Copy and paste this list of variables into the `select` statement.
