@@ -907,7 +907,11 @@ head(adsl_ht_wt, 10)</code></pre>
 ## 8  01-701-1111      54  Xanomeline Low Dose   F    158.2     59.9
 ## 9  01-701-1115      54  Xanomeline Low Dose   M    181.6     78.9
 ## 10 01-701-1118       0              Placebo   M    180.3     71.2</code></pre>
-<pre class="r"><code># SAMPLE 1 - Using pivot longer to construct HEIGHTBL and WEIGHTBL in a single column as parameters with their values
+<pre class="r"><code>########################################## - - - SCENARIO 1 - - -  ##########################################
+
+# Using pivot longer to construct HEIGHTBL and WEIGHTBL in a single column as parameters with their values
+
+#############################################################################################################
 
 samp1_ht_wt &lt;- adsl_ht_wt %&gt;%
   pivot_longer(cols = c(HEIGHTBL, WEIGHTBL),
@@ -936,15 +940,16 @@ samp1_ht_wt</code></pre>
             med = median(value) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2),
             min = min(value) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2), 
             max = max(value) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2),
-            n = n() %&gt;% format(nsmall = 0),
-            .groups = &quot;keep&quot;) %&gt;%
+            n = n() %&gt;% format(nsmall = 0)) %&gt;%
   mutate(range_minmax= paste0(&quot;(&quot;,min, &quot;,&quot;, max, &quot;)&quot;)) %&gt;%
   mutate(SEX = recode(SEX, &quot;M&quot; = &quot;Male&quot;, &quot;F&quot; = &quot;Female&quot;)) %&gt;%
   mutate(HT_WT = case_when(HT_WT == &quot;WEIGHTBL&quot; ~ &quot;Weight (kg)&quot;,
-                           HT_WT == &quot;HEIGHTBL&quot; ~ &quot;Height (cm)&quot;))
-samp1_ht_wt_stat</code></pre>
+                           HT_WT == &quot;HEIGHTBL&quot; ~ &quot;Height (cm)&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;TRT01AN&#39;, &#39;TRT01A&#39;, &#39;SEX&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>samp1_ht_wt_stat</code></pre>
 <pre><code>## # A tibble: 12 × 11
-## # Groups:   TRT01AN, TRT01A, SEX, HT_WT [12]
+## # Groups:   TRT01AN, TRT01A, SEX [6]
 ##    TRT01AN TRT01A   SEX   HT_WT mean  sd    med   min   max   n     range_minmax
 ##      &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;       
 ##  1       0 Placebo  Fema… Heig… 156.… 7.53  156.… 142.… 174.… 46    (142.20,174…
@@ -1003,7 +1008,11 @@ samp1_desc_stat_long</code></pre>
 ## # ℹ abbreviated name: ¹​`Xanomeline Low Dose_Female`
 ## # ℹ 3 more variables: `Xanomeline Low Dose_Male` &lt;chr&gt;,
 ## #   `Xanomeline High Dose_Female` &lt;chr&gt;, `Xanomeline High Dose_Male` &lt;chr&gt;</code></pre>
-<pre class="r"><code># SAMPLE 2 - Getting summary statistics per HEIGHTBL &amp; WEIGHTBL to show the use of the function
+<pre class="r"><code>########################################## - - - SCENARIO 2 - - -  ##########################################
+
+# Getting summary statistics per HEIGHTBL &amp; WEIGHTBL to show the use of the function
+
+#############################################################################################################
 
 samp2_ht_stat &lt;- adsl_ht_wt %&gt;%
   group_by(TRT01AN, TRT01A, SEX) %&gt;%
@@ -1012,14 +1021,15 @@ samp2_ht_stat &lt;- adsl_ht_wt %&gt;%
             med = median(HEIGHTBL) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2),
             min = min(HEIGHTBL) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2), 
             max = max(HEIGHTBL) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2),
-            n = n() %&gt;% format(nsmall = 0),
-            .groups = &quot;keep&quot;) %&gt;%
+            n = n() %&gt;% format(nsmall = 0)) %&gt;%
   mutate(range_minmax= paste0(&quot;(&quot;,min, &quot;,&quot;, max, &quot;)&quot;)) %&gt;%
   mutate(SEX = recode(SEX, &quot;M&quot; = &quot;Male&quot;, &quot;F&quot; = &quot;Female&quot;)) %&gt;%
-  mutate(PARAM = &quot;Height (cm)&quot;)
-samp2_ht_stat</code></pre>
+  mutate(PARAM = &quot;Height (cm)&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;TRT01AN&#39;, &#39;TRT01A&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre class="r"><code>samp2_ht_stat</code></pre>
 <pre><code>## # A tibble: 6 × 11
-## # Groups:   TRT01AN, TRT01A, SEX [6]
+## # Groups:   TRT01AN, TRT01A [3]
 ##   TRT01AN TRT01A    SEX   mean  sd    med   min   max   n     range_minmax PARAM
 ##     &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;
 ## 1       0 Placebo   Fema… 156.… 7.53  156.… 142.… 174.… 46    (142.20,174… Heig…
@@ -1035,14 +1045,15 @@ samp2_ht_stat</code></pre>
             med = median(WEIGHTBL) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2),
             min = min(WEIGHTBL) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2), 
             max = max(WEIGHTBL) %&gt;% round(digits = 2) %&gt;% format(nsmall = 2),
-            n = n() %&gt;% format(nsmall = 0),
-            .groups = &quot;keep&quot;) %&gt;%
+            n = n() %&gt;% format(nsmall = 0)) %&gt;%
   mutate(range_minmax= paste0(&quot;(&quot;,min, &quot;,&quot;, max, &quot;)&quot;)) %&gt;%
   mutate(SEX = recode(SEX, &quot;M&quot; = &quot;Male&quot;, &quot;F&quot; = &quot;Female&quot;)) %&gt;%
-  mutate(PARAM = &quot;Weight (kg)&quot;)
-samp2_wt_stat</code></pre>
+  mutate(PARAM = &quot;Weight (kg)&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;TRT01AN&#39;, &#39;TRT01A&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre class="r"><code>samp2_wt_stat</code></pre>
 <pre><code>## # A tibble: 6 × 11
-## # Groups:   TRT01AN, TRT01A, SEX [6]
+## # Groups:   TRT01AN, TRT01A [3]
 ##   TRT01AN TRT01A    SEX   mean  sd    med   min   max   n     range_minmax PARAM
 ##     &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;
 ## 1       0 Placebo   Fema… 56.73 9.84  55.80 34.00 79.80 46    (34.00,79.8… Weig…
@@ -1054,7 +1065,7 @@ samp2_wt_stat</code></pre>
 <pre class="r"><code>samp2_ht_wt_stat &lt;- rbind(samp2_ht_stat, samp2_wt_stat)
 samp2_ht_wt_stat</code></pre>
 <pre><code>## # A tibble: 12 × 11
-## # Groups:   TRT01AN, TRT01A, SEX [6]
+## # Groups:   TRT01AN, TRT01A [3]
 ##    TRT01AN TRT01A   SEX   mean  sd    med   min   max   n     range_minmax PARAM
 ##      &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;        &lt;chr&gt;
 ##  1       0 Placebo  Fema… 156.… 7.53  156.… 142.… 174.… 46    (142.20,174… Heig…
@@ -1181,14 +1192,15 @@ It’s a bit like using a Macro variable in SAS.</p>
               med = median({{variable}})  ,              
               min = min({{variable}}), 
               max = max({{variable}}),
-              n = n(),
-              .groups = &quot;keep&quot;)
+              n = n())
 }
 
 adsl_eff %&gt;%
   varSummary(AGE)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;TRT01AN&#39;, &#39;TRT01A&#39;. You can override using
+## the `.groups` argument.</code></pre>
 <pre><code>## # A tibble: 6 × 9
-## # Groups:   TRT01AN, TRT01A, SEX [6]
+## # Groups:   TRT01AN, TRT01A [3]
 ##   TRT01AN TRT01A               SEX    mean  sd      med   min   max     n
 ##     &lt;dbl&gt; &lt;chr&gt;                &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
 ## 1       0 Placebo              Female 76.1  8.5    77.5    59    88    46
@@ -1197,7 +1209,11 @@ adsl_eff %&gt;%
 ## 4      54 Xanomeline Low Dose  Male   75.6  8.7    77.5    51    88    34
 ## 5      81 Xanomeline High Dose Female 74.3  7.5    76      56    88    35
 ## 6      81 Xanomeline High Dose Male   73.6  8.3    75      56    86    39</code></pre>
-<pre class="r"><code># Using a function for Weight &amp; Height
+<pre class="r"><code>########################################## - - - FUNCTION - - -  ############################################
+
+# Using a function for Weight &amp; Height
+
+#############################################################################################################
 
 varSummary_ht_wt &lt;- function(.data = NULL, variable = NULL, roundby = NULL, param = NULL) {
   .data %&gt;%
