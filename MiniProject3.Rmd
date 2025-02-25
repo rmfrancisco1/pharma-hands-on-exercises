@@ -212,7 +212,11 @@ head(adsl_ht_wt, 10)
 ```
 
 ```{r}
-# SAMPLE 1 - Using pivot longer to construct HEIGHTBL and WEIGHTBL in a single column as parameters with their values
+########################################## - - - SCENARIO 1 - - -  ##########################################
+
+# Using pivot longer to construct HEIGHTBL and WEIGHTBL in a single column as parameters with their values
+
+#############################################################################################################
 
 samp1_ht_wt <- adsl_ht_wt %>%
   pivot_longer(cols = c(HEIGHTBL, WEIGHTBL),
@@ -258,7 +262,11 @@ samp1_desc_stat_long %>%
                               category == "range_minmax" ~ "Range(min,max)")) 
 ```
 ```{r}
-# SAMPLE 2 - Getting summary statistics per HEIGHTBL & WEIGHTBL to show the use of the function
+########################################## - - - SCENARIO 2 - - -  ##########################################
+
+# Getting summary statistics per HEIGHTBL & WEIGHTBL to show the use of the function
+
+#############################################################################################################
 
 samp2_ht_stat <- adsl_ht_wt %>%
   group_by(TRT01AN, TRT01A, SEX) %>%
@@ -390,7 +398,11 @@ adsl_eff %>%
 ```
 
 ```{r}
+########################################## - - - FUNCTION - - -  ############################################
+
 # Using a function for Weight & Height
+
+#############################################################################################################
 
 varSummary_ht_wt <- function(.data = NULL, variable = NULL, roundby = NULL, param = NULL) {
   .data %>%
