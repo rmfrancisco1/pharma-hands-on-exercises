@@ -59,16 +59,17 @@ library(rio)
 2.   Read in the CDISC adsl data from the GitHub location (`https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt`) and assign this to an object in R using the assignment operator `<-`. Make sure that the URL location is a character string by enclosing it in `" "`. The `rio` package has a function called `import` that reads data into R and infers the data type from the file name. The first argument of that function is `file`. Paste the file path / URL above after the `file=` argument in the code below, then run the chunk using the green arrow.
 
 ```{r read_adsl}
-adsl <- import( file = ""  )
-adsl
+adsl <- import( file = "https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt"  )
+head(adsl, 10)
 ```
 
 Next filter the adsl dataset where the EFFFL variable has the value "Y" (as we did in previous MiniProjects). Add the appropriate code to the `filter` function to select only observations where the EFFFL is "Y". We will also recode the SEX variable to replace values where it is "M" with the value "Male" and where "F" recoding to "Female".
 
 ```{r create_adsl_eff}
 adsl_eff <- adsl %>%
-  filter(  ) %>%
-  mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female")) 
+  filter( EFFFL == "Y" ) %>%
+  mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female"),
+         .groups = "keep") 
 ```
 
 3.  Create a dataframe (age_mean) to hold the mean Age (Grouped by Treatment and Gender) needed for the demog table.
@@ -85,7 +86,7 @@ The {dplyr} package has a function called `summarize()` that will calculate vari
 
 ```{r}
 adsl_eff %>%
-  group_by(  ) %>% 
+  group_by( TRT01AN, TRT01A, SEX ) %>% 
   summarize(mean =(mean(AGE)))
 ```
 
@@ -95,8 +96,8 @@ Notice that there are 5 decimal places outputted in the mean values. We do not o
 adsl_eff %>%
   group_by( TRT01A, TRT01AN, SEX ) %>%
   summarize(mean = (mean( AGE ) %>% 
-                      round(digits =  ) %>%
-                      format(nsmall =  ))
+                      round(digits = 1) %>%
+                      format(nsmall = 1))
   )
 ```
 
@@ -107,12 +108,12 @@ Using the above information, finish the code below by creating a data frame name
 ```{r}
 age_stat<- adsl_eff %>%
   group_by(TRT01AN,TRT01A,SEX) %>%
-  summarize(mean = (mean( ) %>% round(digits = 1) %>% format(nsmall=1))  ,
-            sd = (sd( ) %>% round(digits = 1) %>% format(nsmall = 1)), 
-            med = median( )  ,              
-            min = min( ), 
-            max = max( ),
-            n = n())
+  summarize(mean = (mean(AGE) %>% round(digits = 1) %>% format(nsmall=1))  ,
+            sd = (sd(AGE) %>% round(digits = 1) %>% format(nsmall = 1)), 
+            med = median(AGE) %>% format(nsmall = 0),              
+            min = min(AGE) %>% format(nsmall = 0), 
+            max = max(AGE) %>% format(nsmall = 0),
+            n = n() %>% format(nsmall = 0))
 
 age_stat
 ```
@@ -128,7 +129,7 @@ Notice that there is a space between the first parentheses and the first digit. 
 
 ```{r}
 age_stat2<-age_stat %>%
-  mutate(range_minmax= paste("(",min, ",", max, ")"))
+  mutate(range_minmax= paste0("(",min, ", ", max, ")"))
 
 age_stat2
 
@@ -169,7 +170,7 @@ desc_stat_long <- age_stat2 %>%
 
 7.  Now we can use the `pivot_wider()` function to transpose the `desc_stat_long` data, using the to match the Demographic table below:
 
-![Demographic table](images/demog_summary_table.PNG).
+![Demographic table](img/demog_summary_table.PNG).
 
 Please see Exercise 13 from MiniProject2.Rmd for information on how to use `pivot_wider()`. (HINT: `pivot_wider()` and `pivot_longer()` are similar except that `pivot_longer()` tells R where column names and values are going ***to***, but `pivot_wider()` tells R where column names and values are coming ***from***. Try the code below, choosing different variables to use in `names_from` argument. See how the choices change the look of the resulting dataset, and choose the best representation to match the desired final table. If you need to use more than one variable to define columns you can use the `c()` function to collect the variables into a vector of variable names.
 
@@ -202,6 +203,118 @@ agestat_cat
 
 To check that your code is reproducible, you will want to use the "knit" button on the RStudio IDE interface to create an HTML file based on your saved .Rmd file. If your code chunks are reproducible then you should get an HTML file as a result. If NOT (if there's an error or if the "knit" process fails) then click on the arrow to the right of the "Run" button and select "Restart R and Run All Chunks". Then troubleshoot which chunk is causing problems.
 
+```{r}
+adsl_ht_wt <- adsl %>%
+  filter(EFFFL == 'Y') %>%
+  select(USUBJID, TRT01AN, TRT01A, SEX, HEIGHTBL, WEIGHTBL)
+
+head(adsl_ht_wt, 10)
+```
+
+```{r}
+# SAMPLE 1 - Using pivot longer to construct HEIGHTBL and WEIGHTBL in a single column as parameters with their values
+
+samp1_ht_wt <- adsl_ht_wt %>%
+  pivot_longer(cols = c(HEIGHTBL, WEIGHTBL),
+               names_to = "HT_WT",
+               values_to = "value")
+
+samp1_ht_wt
+```
+
+```{r}
+samp1_ht_wt_stat <- samp1_ht_wt %>%
+  group_by(TRT01AN, TRT01A, SEX, HT_WT) %>%
+  summarize(mean = mean(value) %>% round(digits = 2) %>% format(nsmall=2),
+            sd = sd(value) %>% round(digits = 2) %>% format(nsmall = 2), 
+            med = median(value) %>% round(digits = 2) %>% format(nsmall = 2),
+            min = min(value) %>% round(digits = 2) %>% format(nsmall = 2), 
+            max = max(value) %>% round(digits = 2) %>% format(nsmall = 2),
+            n = n() %>% format(nsmall = 0)) %>%
+  mutate(range_minmax= paste0("(",min, ",", max, ")")) %>%
+  mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female")) %>%
+  mutate(HT_WT = case_when(HT_WT == "WEIGHTBL" ~ "Weight (kg)",
+                           HT_WT == "HEIGHTBL" ~ "Height (cm)"))
+samp1_ht_wt_stat
+```
+
+```{r}
+samp1_desc_stat_long <- samp1_ht_wt_stat %>%
+  ungroup() %>%
+  select("TRT01A", "SEX", "HT_WT", "n", "mean", "med", "sd", "range_minmax") %>% 
+  mutate(across(where(is.numeric), .fns = as.character)) %>%
+  pivot_longer(-c("TRT01A","HT_WT","SEX"), names_to ="category", values_to = "values" )
+
+samp1_desc_stat_long
+```
+
+```{r}
+samp1_desc_stat_long %>%
+  pivot_wider(names_from = c(TRT01A, SEX), values_from = values) %>%
+  mutate(category = case_when(category == "n" ~ "N",
+                              category == "med" ~ "Median", 
+                              category == "mean" ~ "Mean", 
+                              category == "sd" ~ "Std Dev", 
+                              category == "range_minmax" ~ "Range(min,max)")) 
+```
+```{r}
+# SAMPLE 2 - Getting summary statistics per HEIGHTBL & WEIGHTBL to show the use of the function
+
+samp2_ht_stat <- adsl_ht_wt %>%
+  group_by(TRT01AN, TRT01A, SEX) %>%
+  summarize(mean = mean(HEIGHTBL) %>% round(digits = 2) %>% format(nsmall=2),
+            sd = sd(HEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2), 
+            med = median(HEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2),
+            min = min(HEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2), 
+            max = max(HEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2),
+            n = n() %>% format(nsmall = 0)) %>%
+  mutate(range_minmax= paste0("(",min, ",", max, ")")) %>%
+  mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female")) %>%
+  mutate(PARAM = "Height (cm)")
+samp2_ht_stat
+```
+
+```{r}
+
+samp2_wt_stat <- adsl_ht_wt %>%
+  group_by(TRT01AN, TRT01A, SEX) %>%
+  summarize(mean = mean(WEIGHTBL) %>% round(digits = 2) %>% format(nsmall=2),
+            sd = sd(WEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2), 
+            med = median(WEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2),
+            min = min(WEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2), 
+            max = max(WEIGHTBL) %>% round(digits = 2) %>% format(nsmall = 2),
+            n = n() %>% format(nsmall = 0)) %>%
+  mutate(range_minmax= paste0("(",min, ",", max, ")")) %>%
+  mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female")) %>%
+  mutate(PARAM = "Weight (kg)")
+samp2_wt_stat
+```
+
+```{r}
+
+samp2_ht_wt_stat <- rbind(samp2_ht_stat, samp2_wt_stat)
+samp2_ht_wt_stat
+```
+```{r}
+samp2_desc_stat_long <- samp2_ht_wt_stat %>%
+  ungroup() %>%
+  select("TRT01A", "SEX", "PARAM", "n", "mean", "med", "sd", "range_minmax") %>% 
+  mutate(across(where(is.numeric), .fns = as.character)) %>%
+  pivot_longer(-c("TRT01A","PARAM","SEX"), names_to ="category", values_to = "values" )
+
+samp2_desc_stat_long
+```
+
+```{r}
+samp2_desc_stat_long %>%
+  pivot_wider(names_from = c(TRT01A, SEX), values_from = values) %>%
+  mutate(category = case_when(category == "n" ~ "N",
+                              category == "med" ~ "Median", 
+                              category == "mean" ~ "Mean", 
+                              category == "sd" ~ "Std Dev", 
+                              category == "range_minmax" ~ "Range(min,max)")) 
+```
+
 Save the .RMD file on your desktop and click on the "Knit" button at the top of the file to render an HTML version of this document.
 
 ### Extra credit / Top tip:
@@ -211,16 +324,16 @@ If you need to copy and paste code 3 times or more it's time to write a function
 You can quickly convert from code like this:
 
 ```{r}
-age_stat<- adsl_eff %>%
-  group_by(TRT01AN,TRT01A,SEX) %>%
-  summarize(mean = mean( ) %>% round(digits = 1) %>% format(nsmall=1)  ,
-            sd = sd( ) %>% round(digits = 1) %>% format(nsmall = 1), 
-            med = median( )  ,              
-            min = min( ), 
-            max = max( ),
-            n = n())
-
-age_stat
+# age_stat<- adsl_eff %>%
+#   group_by(TRT01AN,TRT01A,SEX) %>%
+#   summarize(mean = mean( ) %>% round(digits = 1) %>% format(nsmall=1)  ,
+#             sd = sd( ) %>% round(digits = 1) %>% format(nsmall = 1), 
+#             med = median( )  ,              
+#             min = min( ), 
+#             max = max( ),
+#             n = n())
+# 
+# age_stat
 ```
 
 To a function like this:
@@ -254,8 +367,8 @@ varSummary <- function(.data, variable) {
               n = n())
 }
 
-adsl_saf %>%
-  varSummary(AGE)
+# adsl_saf %>%
+#   varSummary(AGE)
 ```
 
 The problem here is that R is looking for an object called AGE, which doesn't exist in the current Environment. Instead we need to tell R that the "AGE" argument that we pass should be interpreted within the scope of the data, rather than looking in the Environment. The secret is to enclose or "embrace" the variable in double quotes within the function. It's a bit like using a Macro variable in SAS.
@@ -272,6 +385,63 @@ varSummary <- function(.data = NULL, variable = NULL) {
               n = n())
 }
 
-adsl_saf %>%
+adsl_eff %>%
   varSummary(AGE)
+```
+
+```{r}
+# Using a function for Weight & Height
+
+varSummary_ht_wt <- function(.data = NULL, variable = NULL, roundby = NULL, param = NULL) {
+  .data %>%
+    group_by(TRT01AN,TRT01A,SEX) %>%
+    summarize(mean = mean({{variable}}) %>% round(digits = {{roundby}}+2) %>% format(nsmall = {{roundby}}+2),
+              sd = sd({{variable}}) %>% round(digits = {{roundby}}+2) %>% format(nsmall = {{roundby}}+2), 
+              med = median({{variable}}) %>% round(digits = {{roundby}}+2) %>% format(nsmall = {{roundby}}+2),              
+              min = min({{variable}}) %>% round(digits = {{roundby}}+2) %>% format(nsmall = {{roundby}}+2), 
+              max = max({{variable}}) %>% round(digits = {{roundby}}+2) %>% format(nsmall = {{roundby}}+2),
+              n = n() %>% format(nsmall = {{roundby}}), 
+              .groups = "keep") %>%
+    mutate(range_minmax= paste0("(",min, ",", max, ")")) %>%
+    mutate(SEX = recode(SEX, "M" = "Male", "F" = "Female")) %>%
+    mutate(PARAM = {{param}})
+}
+
+ht_stat_func <- adsl_ht_wt %>%
+  varSummary_ht_wt(variable=HEIGHTBL, roundby=0, param = "Height (cm)")
+
+ht_stat_func
+```
+
+```{r}
+wt_stat_func <- adsl_ht_wt %>%
+  varSummary_ht_wt(variable=WEIGHTBL, roundby=0, param = "Weight (kg)")
+
+wt_stat_func
+```
+
+```{r}
+ht_wt_stat_func <- rbind(ht_stat_func, wt_stat_func) 
+
+ht_wt_stat_func
+```
+
+```{r}
+desc_stat_long_func <- ht_wt_stat_func %>%
+  ungroup() %>%
+  select("TRT01A", "SEX", "PARAM", "n", "mean", "med", "sd", "range_minmax") %>% 
+  mutate(across(where(is.numeric), .fns = as.character)) %>%
+  pivot_longer(-c("TRT01A","SEX","PARAM"), names_to ="category", values_to = "values" )
+
+desc_stat_long_func
+```
+
+```{r}
+desc_stat_long_func %>%
+  pivot_wider(names_from = c(TRT01A, SEX), values_from = values) %>%
+  mutate(category = case_when(category == "n" ~ "N",
+                              category == "med" ~ "Median", 
+                              category == "mean" ~ "Mean", 
+                              category == "sd" ~ "Std Dev", 
+                              category == "range_minmax" ~ "Range(min,max)")) 
 ```
