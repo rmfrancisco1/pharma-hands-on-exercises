@@ -41,10 +41,12 @@ adsl_eff <- adsl %>%
 Big_N_cnt <- adsl_eff %>%
   group_by( TRT01AN, TRT01A  ) %>%
   count(name = "N")
+Big_N_cnt
 
 small_n_cnt <- adsl_eff %>%
   group_by( TRT01AN, TRT01A,  SEX ) %>%
   count(name = "n")
+small_n_cnt
 ```
 
 ------------------------------------------------------------------------
@@ -111,6 +113,7 @@ age_mrg_cnt3 <- age_mrg_cnt2 %>%
             by = c("TRT01A", "TRT01AN", "SEX"))
 
 age_mrg_cnt3 <- ungroup(age_mrg_cnt3)
+age_mrg_cnt3
 ```
 
 4.  Getting percentages for totals by age group
@@ -127,6 +130,7 @@ age_pct <- age_data_new %>%
 age_n_pct <- age_pct %>%
   mutate(npct = paste(age_n, paste0("(", perc_achar, ")"))) %>% 
   select(AGEGR1, TRT01A, SEX, npct)
+age_n_pct
 ```
 
 5.  Transpose and rename columns so that they can be set together
@@ -183,8 +187,11 @@ age_stat<- adsl_eff %>%
             min = min(AGE) %>% format(nsmall=1), 
             max = max(AGE) %>% format(nsmall=1),
            n = n()%>% format(nsmall=0))
+
 age_stat2<-age_stat %>%
   mutate(range_minmax= paste0("(",min, ",", max, ")"))
+age_stat2
+
 ```
 
 7.  Ungrouping and transposing
@@ -224,8 +231,138 @@ dm_allcomb
 
 1.  Reorder the age variables to be in the correct order (<65, 65-80, >80)
 
+```{r}
+# Reordering first the age variable in the correct order
+age_cat_order <- age_cat %>%
+  mutate(category = factor(category, 
+                           levels = c("<65", "65-80", ">80"))) %>%
+  arrange(category)
+
+age_cat_order
+```
+
 2.  Move N before Age- categories.
 
+```{r}
+# Separating the N counts from agestat_cat
+agestat_cat_N <- agestat_cat %>%
+    filter(category == 'N')
+
+# Removing the N counts from agestat_cat
+agestat_cat_noN <- agestat_cat %>%
+    filter(category != 'N')
+
+# adding header for Age Stats
+agestat_header <- tribble(~category,
+                          "Age (Years)")
+
+comb_age <- bind_rows(agestat_header, agestat_cat_N, age_cat_order, agestat_cat_noN)
+comb_age
+```
+
 3.  Add Ethnicity and Race.
+
+
+```{r}
+
+# Creating a Function to get the Counts and Percentages of Variables
+
+
+cnt_perc <- function(data, var, varn=NULL) {
+  
+  var_total <- paste0("`", var, "_total", "`")
+  var_n <- paste0("`", var, "_n", "`")
+  
+  # Conditionally include 'varn' in group_by() if it's not NULL
+  group_vars_total <- c("TRT01AN", "TRT01A", var)
+  if (!is.null(varn)) group_vars_total <- c(group_vars_total, varn)
+
+  group_vars_n <- c("TRT01AN", "TRT01A", "SEX", var)
+  if (!is.null(varn)) group_vars_n <- c(group_vars_n, varn)  
+  
+  # Count Occurrences for the Variable Total
+  var_total_cnt <- data %>%
+      group_by(across(all_of(group_vars_total))) %>%
+      count(name = var_total)
+  
+  # Count Occurrences for the Variable by Sex
+  var_n_cnt <- data %>%
+      group_by(across(all_of(group_vars_n))) %>%
+      count(name = var_n)
+  
+  # Merge Datasets with Additional Counts
+  var_mrg_cnt <- var_n_cnt %>%
+      left_join(var_total_cnt, by = c("TRT01AN", "TRT01A", varn, var)) %>%
+      left_join(Big_N_cnt, by = c("TRT01AN", "TRT01A")) %>%
+      left_join(small_n_cnt, by = c("TRT01A", "TRT01AN", "SEX")) %>%
+      ungroup()
+  
+  # Compute Percentages
+  var_data_new <- var_mrg_cnt %>%
+      mutate(perc_tot_r = round((.data[[var_total]] / N) * 100, 1),
+             perc_var = round((.data[[var_n]] / n) * 100, 1))
+  
+  # Format Percentages
+  var_pct <- var_data_new %>%
+      mutate(perc_tchar_r = format(perc_tot_r, nsmall = 1),
+             perc_achar_r = format(perc_var, nsmall = 1))
+  
+  # Create Combined Percentage Column
+  var_n_pct <- var_pct %>%
+      mutate(npct_r = paste(.data[[var_n]], paste0("(", perc_achar_r, ")"))) %>%
+      select(all_of(varn), all_of(var), TRT01A, SEX, npct_r)
+  
+  # Reshape Data to Wide Format
+  var_trans <- pivot_wider(var_n_pct,
+                           names_from = c(TRT01A, SEX),
+                           values_from = npct_r,
+                           values_fill = "0",
+                           names_sep = "_")
+  
+  # Rename Column and Sort
+  var_cat <- rename(var_trans, category = all_of(var))
+  
+  if (!is.null(varn)) {
+      var_cat <- var_cat %>% arrange(.data[[varn]])
+  }
+  
+  # Add Header for the Variable Stats
+  var_header <- tribble(~category, str_to_title(var))
+  
+  # Combine Header with Data and Return Result
+  comb_var <- bind_rows(var_header, var_cat) %>%
+      select(-all_of(varn))
+
+  return(comb_var)
+}
+
+```
+
+
+```{r}
+# In getting the counts & percentages for RACE,
+
+comb_race <- cnt_perc(data=adsl_eff, var = "RACE", varn = "RACEN")
+comb_race
+
+```
+
+
+```{r}
+# In getting the counts & percentages for ETHNICITY,
+# Note that ETHNICN variable is not present in the current dataset
+
+comb_ethnic <- cnt_perc(data=adsl_eff, var = "ETHNIC")
+comb_ethnic
+
+```
+
+```{r}
+# Combining all the subgroup summary statistics
+all_comb_sgrp <- bind_rows(comb_age, comb_race, comb_ethnic)
+all_comb_sgrp
+
+```
+
 
 Save the .RMD file on your desktop and click on the "Knit" button at the top of the file to render an HTML version of this document.
