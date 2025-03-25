@@ -18,7 +18,7 @@ In this document you'll see code chunks (typically on a light grey background) a
 In this project we will be taking our code from Projects 2 and 3 and combining them to create output similar to that of our demog reference table
 
 In this project we are working towards creating a demography summary table similar to this one: 
-![Demographic table](img/MiniProject4_demog_table.png). After completing the challenge, the updated table should be similar to this one:![Final demographic table](img/demog_summary_table.png)
+![Demographic table](img/MiniProject4_demog_table.png). After completing the challenge, the updated table should be similar to this one:![Final demographic table](img/demog_summary_table.PNG)
 
 For steps 1-7 we will be re-doing the code we did in Projects 2 and 3. We will not be breaking it up and explaining the code for these steps since this is taken directly from Projects 2 and 3. You can refer to those trainings for a full explanation of the code and logic used here.
 
@@ -253,10 +253,10 @@ agestat_cat_noN <- agestat_cat %>%
     filter(category != 'N')
 
 # adding header for Age Stats
-agestat_header <- tribble(~category,
-                          "Age (Years)")
+agestat_header <- as_tibble(setNames(as.list(rep("", ncol(agestat_cat_N))), names(agestat_cat_N)))
+agestat_header$category <- "Age (Years)"
 
-comb_age <- bind_rows(agestat_header, agestat_cat_N, age_cat_order, agestat_cat_noN)
+comb_age <- bind_rows(agestat_cat_N, agestat_header, age_cat_order, agestat_cat_noN)
 comb_age
 ```
 
@@ -323,16 +323,19 @@ cnt_perc <- function(data, var, varn=NULL) {
   var_cat <- rename(var_trans, category = all_of(var))
   
   if (!is.null(varn)) {
-      var_cat <- var_cat %>% arrange(.data[[varn]])
+      var_cat <- var_cat %>% arrange(desc(.data[[varn]]))
   }
   
   # Add Header for the Variable Stats
-  var_header <- tribble(~category, str_to_title(var))
-  
-  # Combine Header with Data and Return Result
-  comb_var <- bind_rows(var_header, var_cat) %>%
-      select(-all_of(varn))
+  var_header <- as_tibble(setNames(as.list(rep("", ncol(var_cat))), names(var_cat)))
+  var_header$category <- paste(str_to_title(var), "(%)")
 
+
+  # Combine Header with Data and Return Result
+  comb_var <- rbind(var_header, var_cat) %>%
+      arrange(var) %>% select(-all_of(varn))
+
+  # return(var_header)
   return(comb_var)
 }
 
