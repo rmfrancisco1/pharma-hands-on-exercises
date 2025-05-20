@@ -119,17 +119,17 @@ Now let's add data on top of the boxplots. We can do this quite easily using `ge
 ALT2 %>%
   filter(WEEK %in% c(0, 5, 10, 15, 20, 25, 30)) %>%
   ggplot( ) +
-  geom_boxplot( ) +
-  geom_point( )
+  geom_boxplot(mapping = aes(x = as.factor(WEEK), y = LBSTRESN)) +
+  geom_point(mapping = aes(x = as.factor(WEEK), y = LBSTRESN))
 ```
 
 It might be more useful to spread out the points a little so that we can see individual points. We do this using `geom_jitter`. We can also apply the `alpha` setting to the points to add transparency so we can see the boxplots beneath. The `width` option in `geom_jitter` controls the horizontal jittering of the points. Smaller values will cluster them closer to the middle of the boxplot. The default is to use the full width of the boxplot. Note that in `geom_boxplot` we set the argument `outlier.shape = NA` which will "turn off" showing the outliers, since in this case we show them via `geom_jitter` we don't need to show them in the boxplot ***as well***.
 
 ```{r}
 plot2b <- ALT2 %>%
-  filter( ) %>%
-  ggplot(mapping = aes(x = , y = )) +
-  geom_boxplot(  ) +
+  filter() %>%
+  ggplot(mapping = aes(x = as.factor(WEEK), y = LBSTRESN)) +
+  geom_boxplot( ) +
   geom_jitter(alpha = 0.2, width = 0.1)
 
 plot2b
@@ -182,7 +182,7 @@ Use the "Data visualization with ggplot2" Cheat Sheet (from the Help menu in RSt
 ```{r}
 ALT2 %>%
   ggplot() +
-  geom_bar(mapping = aes( ))
+  geom_bar(mapping = aes(x = WEEK, fill=   LBNRIND))
 ```
 
 Most individuals have Lab measurements on weeks 2, 4, 6, 8, 16, 24, 26. Let's filter the data to show JUST those weeks.
@@ -225,15 +225,18 @@ As we did in the last mini project, we can now take plots `plot1b` and `plot2b` 
 
 ```{r}
 plot1e <- plot1b +
-  labs(x =  ,
-       y =   )
+  labs(x = "Relative Days to Treatment",
+       y = "Lab Results in Standard Units")
+plot1e
 
 plot2c <- plot2b +
-  labs(x =  , y =   )
+  labs(x =  "Week", y = "Lab Results in Standard Units")
+plot2c
 
 plot3c <- plot3b +
-  labs(x =  ,
-       y =  )
+  labs(x =  "Week",
+       y =  "Frequency")
+plot3c
 ```
 
 ## 7. Using `{patchwork}`
@@ -291,5 +294,24 @@ knitr::include_graphics(path = "img/MiniProject6_challenge.png")
 ```
 
 ```{r}
+
+ALT3 <- ALT2 %>%
+  filter(WEEK %in% c(0, 1, 2, 4, 8, 16)) %>%
+  filter(LBNRIND %in% c("High", "Low"))
+
+plot4 <- 
+  ALT2 %>%
+  filter(WEEK %in% c(0, 1, 2, 4, 8, 16)) %>%
+  ggplot(mapping = aes(x = LBSTRESN, y = as.factor(WEEK))) +
+  coord_cartesian(xlim=c(0, 150)) +
+  stat_dotsinterval(slab_alpha = 0) +
+  geom_point(data = ALT3, color = "red") + 
+  labs(x = "Alanine Aminotransferase U/L",
+       y = "Week")
+
+ggdraw(plot4) + 
+  draw_label("DRAFT", color = "grey", alpha=0.3, size = 75, angle = 45) 
+
+
 sessioninfo::session_info()
 ```
