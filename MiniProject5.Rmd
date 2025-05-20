@@ -12,6 +12,7 @@ https://github.com/phuse-org/phuse-scripts/tree/master/data/adam/cdisc
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(haven)
 library(rio)
 library(glue)
 ```
@@ -43,6 +44,8 @@ The `data` argument is the dataset used for the plot. `mapping` identifies which
 **While learning {ggplot2} we strongly recommend explicitly using the `mapping`** **argument**. This will remind you that you are mapping between column values and attributes on the plot. You will see many people skip naming this argument, but this can lead to confusion and makes it harder to learn what is going on in the `{ggplot2}` call.
 
 ```{r}
+PR <- PR %>% filter(!is.na(PR$ADY) & !is.na(PR$AVAL))
+
     ggplot(data = PR, mapping = aes(x=ADY, y=AVAL)) 
 ```
 
@@ -95,7 +98,7 @@ In Step 4 above, we defined a `group` mapping to show data for each level of `TR
 
 ```{r}
 plot1 <- PR %>%
-  ggplot(data = PR, mapping = aes(x=ADY, y=AVAL, group =  )) +
+  ggplot(data = PR, mapping = aes(x=ADY, y=AVAL, group = USUBJID)) +
   geom_line()
 
 plot1
@@ -166,7 +169,7 @@ So how do we go back to one showing medians calculate across ALL subjects?
 
 ```{r}
 plot3 +
-  stat_summary(mapping = aes(group = NULL), fn = median, colour = "red")
+  stat_summary(mapping = aes(group = NULL), fun = median, colour = "red")
 ```
 
 Not all subjects have been assessed for vital signs on the same day of the treatment period. Let's look at the same plot as above, but using the calculated variable `StudyWeek`.
@@ -267,7 +270,7 @@ And if you use the code above to "guess" the labels for the plot from informatio
 ```{r}
 SysBP <- ADVS  %>%
   filter(PARAMN == 1) %>%
-  filter(VISITNUM > 3) 
+  filter(VISITNUM > 3)
 
 SysBP_plot <- plot4 %+%
   SysBP
@@ -297,9 +300,99 @@ SysBP_plot +
 Do the same for Diastolic BP and Temperature. Ensure that the axes labels match the type of data used.\
 Update `plot4` for the new endpoint.
 
+Diastolic BP
+
+```{r}
+ADVS_final <- ADVS %>% filter(!is.na(ADVS$AVAL)) 
+                    
+DiasBP <- ADVS_final  %>%
+  filter(PARAMN == 2) %>%
+  filter(VISITNUM > 3)
+
+DiasBP_plot <- plot4 %+%
+  DiasBP
+
+xLab <- quo_name(DiasBP_plot$mapping$x)
+yLab <- quo_name(DiasBP_plot$mapping$y)
+groupLab <- quo_name(DiasBP_plot$mapping$group)
+
+study <- uniqueVal(DiasBP_plot$data$STUDYID)
+measure <- uniqueVal(DiasBP_plot$data$PARAM)
+
+xLab <- ifelse(xLab == "ADY", "Analysis Relative Day", xLab)
+groupLab <- case_when(groupLab == "USUBJID" ~ "Subject", 
+                      groupLab == "TRTA" ~ "Treatment",
+                      TRUE ~ groupLab)
+
+DiasBP_plot + 
+  labs(title = glue::glue("Study {study}"),
+       subtitle = glue::glue("Plot of {measure} by {groupLab}"),
+       x = xLab,
+       y = glue::glue("{measure}"))
+```
+
+Temperature
+
+```{r}
+Temp <- ADVS_final  %>%
+  filter(PARAMN == 6) %>%
+  filter(VISITNUM > 3)
+
+Temp_plot <- plot4 %+%
+  Temp
+
+xLab <- quo_name(Temp_plot$mapping$x)
+yLab <- quo_name(Temp_plot$mapping$y)
+groupLab <- quo_name(Temp_plot$mapping$group)
+
+study <- uniqueVal(Temp_plot$data$STUDYID)
+measure <- uniqueVal(Temp_plot$data$PARAM)
+
+xLab <- ifelse(xLab == "ADY", "Analysis Relative Day", xLab)
+groupLab <- case_when(groupLab == "USUBJID" ~ "Subject", 
+                      groupLab == "TRTA" ~ "Treatment",
+                      TRUE ~ groupLab)
+
+Temp_plot + 
+  labs(title = glue::glue("Study {study}"),
+       subtitle = glue::glue("Plot of {measure} by {groupLab}"),
+       x = xLab,
+       y = glue::glue("{measure}"))
+```
+
+
 ## Extra challenge
 
 Read in vital signs data from another study which uses the `VS` or `ADVS` dataset standards. What code needs to change when you produce Pulse Rate plot for the new dataset (compared to the Pulse Rate plot which uses data values to determine labels)?
+
+```{r}
+
+PulseR <- ADVS_final  %>%
+  filter(PARAMN == 3) %>%
+  filter(VISITNUM > 3)
+
+PulseR_plot <- plot4 %+%
+  PulseR
+
+xLab <- quo_name(PulseR_plot$mapping$x)
+yLab <- quo_name(PulseR_plot$mapping$y)
+groupLab <- quo_name(PulseR_plot$mapping$group)
+
+study <- uniqueVal(PulseR_plot$data$STUDYID)
+measure <- uniqueVal(PulseR_plot$data$PARAM)
+
+xLab <- ifelse(xLab == "ADY", "Analysis Relative Day", xLab)
+groupLab <- case_when(groupLab == "USUBJID" ~ "Subject", 
+                      groupLab == "TRTA" ~ "Treatment",
+                      TRUE ~ groupLab)
+
+PulseR_plot + 
+  labs(title = glue::glue("Study {study}"),
+       subtitle = glue::glue("Plot of {measure} by {groupLab}"),
+       x = xLab,
+       y = glue::glue("{measure}"))
+
+```
 
 ```{r}
 sessioninfo::session_info()
