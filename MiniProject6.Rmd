@@ -85,7 +85,7 @@ The predicate used in `gghighlight` here checks whether each subject has *any* v
 library(gghighlight)
 
 plot1c <- plot1b +
-  gghighlight::gghighlight(any(LBNRIND = "")) 
+  gghighlight::gghighlight(any(LBNRIND == "HIGH" | LBNRIND == "LOW")) 
 
 plot1c
 ```
@@ -95,7 +95,7 @@ In order to use facetting with `gghighlight` you need to set the argument `calcu
 ```{r}
 plot1d <- plot1b  +
   facet_wrap( ~ TRTP) + 
-  gghighlight::gghighlight(any(LBNRIND = ""), 
+  gghighlight::gghighlight(any(LBNRIND == "HIGH" | LBNRIND == "LOW"), 
                            calculate_per_facet = TRUE) 
 plot1d
 ```
@@ -297,7 +297,7 @@ knitr::include_graphics(path = "img/MiniProject6_challenge.png")
 
 ALT3 <- ALT2 %>%
   filter(WEEK %in% c(0, 1, 2, 4, 8, 16)) %>%
-  filter(LBNRIND %in% c("High", "Low"))
+  filter(LBNRIND %in% c("HIGH", "LOW"))
 
 plot4 <- 
   ALT2 %>%
