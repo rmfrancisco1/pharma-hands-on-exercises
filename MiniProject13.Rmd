@@ -461,5 +461,6 @@ print(age_summary)
 # Calculate summary by RACE
 race_summary <- demog_sum(adsl_saf, "RACE")
 print(race_summary)
+
 ```
 
