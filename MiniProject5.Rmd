@@ -366,8 +366,10 @@ Temp_plot +
 Read in vital signs data from another study which uses the `VS` or `ADVS` dataset standards. What code needs to change when you produce Pulse Rate plot for the new dataset (compared to the Pulse Rate plot which uses data values to determine labels)?
 
 ```{r}
+ADVS2 <- import("https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdiscpilot01/advs.xpt")
+ADVS2_final <- ADVS2 %>% filter(!is.na(ADVS2$AVAL)) 
 
-PulseR <- ADVS_final  %>%
+PulseR <- ADVS2_final  %>%
   filter(PARAMN == 3) %>%
   filter(VISITNUM > 3)
 
