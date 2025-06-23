@@ -16,13 +16,15 @@ To insert a snippet, in your R script or RMarkdown file, start typing in the nam
 
 
 ```{r function1}
-
+name <- function(variables) {
+  
+}
 ```
 
 If you select the snippet from the completion list, it will be inserted along with several text placeholders which you can fill in by typing and then pressing Tab to advance to the next placeholder:
 
 ```{r function2}
-name <- function(variables) {
+name_func <- function(vars) {
   
 }
 ```
@@ -44,7 +46,8 @@ If you have typed the character sequence for a snippet and want to insert it imm
 
 
 ```{r common_snip}
-
+# library(package)
+# require(package)
 ```
 
 ## Customizing Snippets
@@ -133,6 +136,7 @@ library(tinytex)
 library(rio)
 library(tidyverse)
 library(rmarkdown)
+
 ######################################################################
 
 ```
@@ -143,19 +147,19 @@ If you spend a fair amount of time setting up and adjusting a graph to be just t
 
 ```{r}
 ######################################################################
-ggplot(${1:data}, aes(x=${2:variable}, y=${3:variable})) + 
-  geom_col(color = "black", fill="#0072B2") +
-  theme_minimal() +
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), axis.line = element_line(colour = "gray"),
-        plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)
-  ) +
-  scale_y_continuous(label = comma) + 
-  xlab("") +
-  ylab("") +
-  geom_text(aes(label=${3:variable}), vjust=1.5, colour="white", position=position_dodge(.9), size=5) +
-  ggtitle("<Enter Text>", subtitle = "<Enter Text>")
+# ggplot(data, aes(x=variable, y=variable)) + 
+# geom_col(color = "black", fill="#0072B2") +
+# theme_minimal() +
+# theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+#       panel.grid.minor = element_blank(), axis.line = element_line(colour = "gray"),
+#       plot.title = element_text(hjust = 0.5),
+#       plot.subtitle = element_text(hjust = 0.5)
+# ) +
+# scale_y_continuous(label = comma) + 
+# xlab("") +
+# ylab("") +
+# geom_text(aes(label=variable), vjust=1.5, colour="white", position=position_dodge(.9), size=5) +
+# ggtitle("<Enter Text>", subtitle = "<Enter Text>")
 ######################################################################
 
 ```
