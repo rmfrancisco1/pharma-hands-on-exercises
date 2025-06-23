@@ -20,7 +20,7 @@ A function is a little like a SAS Macro. When you first write the function you w
 To illustrate this we will return an example from MiniProject 2 where we calculated the number of observations within a dataset and calculated numbers and proportions within a category. Recall that section
 
 ```{r}
-adsl_saf <- import("https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt") %>%
+adsl_saf <- read_xpt("https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adsl.xpt") %>%
     filter(SAFFL == "Y")
   
   Big_N_cnt <- adsl_saf %>%
@@ -151,7 +151,7 @@ Use the RStudio IDE `fun` snippet to create a function called "adsl_counts" base
 ```{r}
 
 adsl_counts <- function(dataFile){
- adsl_saf <- read_xpt(  ) %>%
+ adsl_saf <- read_xpt(file = dataFile) %>%
     filter(SAFFL == "Y")
   
   Big_N_cnt <-  adsl_saf %>%
@@ -223,8 +223,8 @@ My recommendation is to write the function, check that it works, THEN go back th
 2.  from the "Code" menu, select "Rename in scope" - type `adsl_File` to rename the argument AND instances of this argument ***within the function***.
 
 ```{r}
-adsl_counts <- function(dataFile){
-    adsl_saf <- read_xpt(  ) %>%
+adsl_counts <- function(adsl_File){
+    adsl_saf <- read_xpt(file = adsl_File) %>%
     filter(SAFFL == "Y")
   
   Big_N_cnt <- adsl_saf %>%
@@ -268,7 +268,7 @@ Amend the function code below to instead calculate based on an input dataset, li
 
 ```{r}
 adsl_counts <- function(adsl_FilePath) {
-  adsl_saf <- read_xpt(   ) %>%
+  adsl_saf <- adsl_FilePath %>%
     filter(SAFFL == "Y")
   
   Big_N_cnt <-  adsl_saf   %>%
@@ -338,3 +338,59 @@ In the code above we are allowing the user to pass the `digits` argument through
 ## Challenge
 
 Convert the code you wrote in the Mini Project 6 challenge into a function that takes an input `adlb` dataset and produces the graph. For an additional challenge, allow the user to specify the axes labels.
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(haven)
+library(ggdist)
+library(cowplot)
+
+plot_challenge <- function(DATAFILEPATH, XLAB = NULL, YLAB = NULL){
+
+  ALT <- 
+    read_xpt(DATAFILEPATH) %>%
+    filter(PARAMCD == "ALT")
+   
+  ALT2 <- ALT %>%
+    filter(VISITNUM > 3) %>%
+    mutate(WEEK = floor(ADY/7))
+
+  TREATfac <- ALT2 %>%
+    select(TRTA, TRTAN) %>%
+    unique() %>%
+    arrange(TRTAN) %>%
+    mutate(TREATMENT = factor(TRTA, ordered = TRUE))
+
+  ALT2 <- ALT2 %>%
+    mutate(TREATTXT = factor(TRTP, levels = TREATfac$TRTA))
+  
+  uniqueVal <- function(x){
+    if(length(unique(x))>1) simpleWarning(paste0("More than one value in column:",x))
+    unique(x)
+  }
+  
+  ALT3 <- 
+    ALT2 %>%
+    filter(WEEK %in% c(0, 1, 2, 4, 8, 16)) %>%
+    filter(LBNRIND %in% c("HIGH", "LOW"))
+
+  plot4 <- 
+    ALT2 %>%
+    filter(WEEK %in% c(0, 1, 2, 4, 8, 16)) %>%
+    ggplot(mapping = aes(x = LBSTRESN, y = as.factor(WEEK))) +
+    coord_cartesian(xlim=c(0, 150)) +
+    stat_dotsinterval(slab_alpha = 0) +
+    geom_point(data = ALT3, color = "red") + 
+    labs(x = XLAB,
+         y = YLAB)
+  
+  ggdraw(plot4) + 
+    draw_label("DRAFT", color = "grey", alpha=0.3, size = 75, angle = 45) 
+}  
+
+plot_challenge(DATAFILEPATH = "https://github.com/phuse-org/phuse-scripts/raw/master/data/adam/cdisc/adlbc.xpt", 
+               XLAB = "Alanine Aminotransferase U/L", 
+               YLAB = "Week")
+
+```
