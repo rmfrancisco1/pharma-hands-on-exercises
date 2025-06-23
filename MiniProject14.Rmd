@@ -146,6 +146,8 @@ library(rmarkdown)
 If you spend a fair amount of time setting up and adjusting a graph to be just the way you want it, you want to be able to use it again!
 
 ```{r}
+# Commenting out to produce html file
+
 ######################################################################
 # ggplot(data, aes(x=variable, y=variable)) + 
 # geom_col(color = "black", fill="#0072B2") +
